@@ -159,7 +159,7 @@ public class ASAClient implements ClientModInitializer {
                 if (client.currentScreen instanceof GenericContainerScreen screen) {
                     if (screen.getTitle().getString().contains("选择子类型")) {
                         for (int i = 0; i < screen.getScreenHandler().slots.size(); i++) {
-                            var stack = screen.getScreenHandler().getSlot(i).getSlotStack();
+                            var stack = screen.getScreenHandler().getSlot(i).getStack();
                             if (stack.isOf(net.minecraft.item.Items.PLAYER_HEAD) || stack.isOf(net.minecraft.item.Items.SKELETON_SKULL)) {
                                 if (stack.getName().getString().contains("自述申诉")) {
                                     clickSlot(client, screen, i);
