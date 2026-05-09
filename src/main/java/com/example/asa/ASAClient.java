@@ -11,6 +11,7 @@ import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.registry.tag.BlockTags;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.option.KeyBinding;
@@ -19,10 +20,10 @@ import org.lwjgl.glfw.GLFW;
 
 public class ASAClient implements ClientModInitializer {
     public static ASAState currentState = ASAState.IDLE;
-    private long lastActionTime = 0;
     private int tickDelay = 0;
 
     private static KeyBinding configKey;
+    private static KeyBinding forceStartKey;
 
     @Override
     public void onInitializeClient() {
@@ -33,9 +34,22 @@ public class ASAClient implements ClientModInitializer {
             "category.autospamappeal"
         ));
 
+        forceStartKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+            "key.autospamappeal.force",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_P,
+            "category.autospamappeal"
+        ));
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player == null) return;
+            
             while (configKey.wasPressed()) {
                 client.setScreen(new ASAScreen());
+            }
+            while (forceStartKey.wasPressed()) {
+                currentState = ASAState.TELEPORTING;
+                client.player.sendMessage(Text.literal("§7[ASA] §e强制开始申诉流程..."), false);
             }
             this.onTick(client);
         });
@@ -60,6 +74,11 @@ public class ASAClient implements ClientModInitializer {
     private void onTick(MinecraftClient client) {
         if (!ASAConfig.enabled || client.player == null || client.world == null) return;
 
+        // 调试信息：在 Action Bar 显示当前状态
+        if (currentState != ASAState.IDLE) {
+            client.player.sendMessage(Text.literal("§b[ASA 状态] §f" + currentState.name()), true);
+        }
+
         if (tickDelay > 0) {
             tickDelay--;
             return;
@@ -67,33 +86,36 @@ public class ASAClient implements ClientModInitializer {
 
         switch (currentState) {
             case IDLE -> {
-                // 如果在某些特定情况下需要自动开始，可以在这里触发
-                // 比如刚进服务器时
-                if (client.player.getAbilities().invulnerable) { // 简单判断是否在保护期/初始点
-                     currentState = ASAState.CHECKING_BLOCK;
-                }
+                // 启用后立即进入检测阶段
+                currentState = ASAState.CHECKING_BLOCK;
             }
 
             case CHECKING_BLOCK -> {
-                // Step 2: 检测脚底方块 (图1中的方块，这里暂定为暗橡木板，请根据实际修改)
-                if (client.world.getBlockState(client.player.getBlockPos().down()).isOf(Blocks.DARK_OAK_PLANKS)) {
-                    client.player.sendMessage(Text.literal("§7[ASA] §a开始申诉..."), false);
+                // Step 2: 检测脚底方块 (匹配图 1 中的多样化木板和闪长岩)
+                var blockState = client.world.getBlockState(client.player.getBlockPos().down());
+                boolean matches = blockState.isIn(BlockTags.PLANKS) || 
+                                 blockState.isOf(Blocks.DIORITE) || 
+                                 blockState.isOf(Blocks.POLISHED_DIORITE) ||
+                                 blockState.isOf(Blocks.ANDESITE) ||
+                                 blockState.isOf(Blocks.GRANITE);
+
+                if (matches) {
+                    client.player.sendMessage(Text.literal("§7[ASA] §a检测到申诉环境，开始申诉..."), false);
                     currentState = ASAState.TELEPORTING;
                     tickDelay = 10;
                 }
             }
 
             case TELEPORTING -> {
-                // Step 3: TP 14 -59 14 (针对原版限制)
-                // 发送位置包
+                // Step 3: TP 14 -59 14
                 client.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(14.5, -59.0, 14.5, true, true));
                 client.player.setPosition(14.5, -59.0, 14.5);
                 currentState = ASAState.ATTACKING;
-                tickDelay = 5;
+                tickDelay = 10;
             }
 
             case ATTACKING -> {
-                // Step 3: 攻击最近的假人 (Bot)
+                // Step 3: 攻击最近的假人
                 Entity target = null;
                 double minDesk = 5.0;
                 Vec3d playerPos = client.player.getPos();
@@ -111,15 +133,14 @@ public class ASAClient implements ClientModInitializer {
                 if (target != null) {
                     client.interactionManager.attackEntity(client.player, target);
                     currentState = ASAState.GUI_MAIN;
-                    tickDelay = 20; // 等待 GUI 打开
+                    tickDelay = 30; // 稍长的等待，确保 GUI 开启
                 }
             }
 
             case GUI_MAIN -> {
-                // Step 4: 处理 GUI (红石块)
+                // Step 4: 处理主 GUI
                 if (client.currentScreen instanceof GenericContainerScreen screen) {
                     if (screen.getTitle().getString().contains("反馈系统")) {
-                        // 寻找红石块
                         for (int i = 0; i < screen.getScreenHandler().slots.size(); i++) {
                             var stack = screen.getScreenHandler().getSlot(i).getStack();
                             if (stack.isOf(net.minecraft.item.Items.REDSTONE_BLOCK)) {
@@ -134,12 +155,12 @@ public class ASAClient implements ClientModInitializer {
             }
 
             case GUI_SUB -> {
-                // Step 5: 处理子 GUI (骷髅头)
+                // Step 5: 处理子 GUI
                 if (client.currentScreen instanceof GenericContainerScreen screen) {
                     if (screen.getTitle().getString().contains("选择子类型")) {
                         for (int i = 0; i < screen.getScreenHandler().slots.size(); i++) {
-                            var stack = screen.getScreenHandler().getSlot(i).getStack();
-                            if (stack.isOf(net.minecraft.item.Items.PLAYER_HEAD)) {
+                            var stack = screen.getScreenHandler().getSlot(i).getSlotStack();
+                            if (stack.isOf(net.minecraft.item.Items.PLAYER_HEAD) || stack.isOf(net.minecraft.item.Items.SKELETON_SKULL)) {
                                 if (stack.getName().getString().contains("自述申诉")) {
                                     clickSlot(client, screen, i);
                                     currentState = ASAState.WAITING_TITLE;
@@ -153,10 +174,10 @@ public class ASAClient implements ClientModInitializer {
             }
             
             case WAITING_TITLE -> {
-                // 逻辑在 Mixin 中处理，或者检测 GUI 关闭
-                if (client.currentScreen == null) {
-                    // GUI 已关闭，准备发送消息
-                    // 状态转换由 Mixin 触发或在此处计时
+                // Mixin 处理发送
+                if (client.currentScreen == null && tickDelay == 0) {
+                     // 如果长时间没识别到 Title，重置状态
+                     // 可以在这里加超时处理
                 }
             }
         }
