@@ -35,7 +35,7 @@ public class InGameHudMixin {
                     if (client.player != null) {
                         client.player.networkHandler.sendChatMessage(ASAConfig.appealReason);
                         ASAClient.currentState = ASAState.FINISHING;
-                        client.player.sendMessage(Text.literal("§7[ASA] §a检测到 Title，已发送申诉内容。"), false);
+                        client.player.sendMessage(Text.literal("§7[ASA] §a检测到 Title，已发送内容: §f" + ASAConfig.appealReason), false);
                     }
                 });
             }

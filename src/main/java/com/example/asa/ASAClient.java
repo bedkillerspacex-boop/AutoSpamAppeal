@@ -58,8 +58,13 @@ public class ASAClient implements ClientModInitializer {
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             if (!ASAConfig.enabled) return;
             String content = message.getString();
-            if (content.contains("反馈成功") || content.contains("Success")) {
+            boolean isFinished = content.contains("反馈成功") || content.contains("Success") || 
+                                 content.contains("反馈失败") || content.contains("Failed") || 
+                                 content.contains("拒绝") || content.contains("Denied");
+
+            if (isFinished) {
                 if (currentState == ASAState.FINISHING) {
+                    MinecraftClient.getInstance().player.sendMessage(Text.literal("§7[ASA] §e检测到服务器反馈，2秒后自动退出..."), false);
                     // 等待 2 秒后退出
                     tickDelay = 40; 
                     new Thread(() -> {
