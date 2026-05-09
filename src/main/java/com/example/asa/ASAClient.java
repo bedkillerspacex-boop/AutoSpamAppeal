@@ -27,6 +27,8 @@ public class ASAClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ASAConfig.load();
+        
         configKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.autospamappeal.config",
             InputUtil.Type.KEYSYM,

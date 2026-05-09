@@ -24,6 +24,7 @@ public class ASAScreen extends Screen {
             button -> {
                 ASAConfig.enabled = !ASAConfig.enabled;
                 button.setMessage(Text.literal("ASA 状态: " + (ASAConfig.enabled ? "§a开启" : "§c关闭")));
+                ASAConfig.save();
             }
         ).dimensions(centerX - 100, centerY - 50, 200, 20).build());
 
@@ -33,6 +34,7 @@ public class ASAScreen extends Screen {
             button -> {
                 ASAConfig.showDebug = !ASAConfig.showDebug;
                 button.setMessage(Text.literal("调试信息: " + (ASAConfig.showDebug ? "§a显示" : "§c隐藏")));
+                ASAConfig.save();
             }
         ).dimensions(centerX - 100, centerY - 25, 200, 20).build());
 
@@ -47,6 +49,7 @@ public class ASAScreen extends Screen {
             Text.literal("保存并关闭"),
             button -> {
                 ASAConfig.appealReason = this.reasonField.getText();
+                ASAConfig.save();
                 this.close();
             }
         ).dimensions(centerX - 100, centerY + 40, 200, 20).build());
