@@ -20,7 +20,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class ASAClient implements ClientModInitializer {
     public static ASAState currentState = ASAState.IDLE;
-    private int tickDelay = 0;
+    public static int tickDelay = 0;
 
     private static KeyBinding configKey;
     private static KeyBinding forceStartKey;
@@ -60,12 +60,21 @@ public class ASAClient implements ClientModInitializer {
             String content = message.getString();
             if (content.contains("反馈成功") || content.contains("Success")) {
                 if (currentState == ASAState.FINISHING) {
-                    MinecraftClient.getInstance().execute(() -> {
-                        if (MinecraftClient.getInstance().world != null) {
-                            MinecraftClient.getInstance().world.disconnect();
-                            currentState = ASAState.IDLE;
+                    // 等待 2 秒后退出
+                    tickDelay = 40; 
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(2000); // 2秒
+                            MinecraftClient.getInstance().execute(() -> {
+                                if (MinecraftClient.getInstance().world != null && currentState == ASAState.FINISHING) {
+                                    MinecraftClient.getInstance().world.disconnect();
+                                    currentState = ASAState.IDLE;
+                                }
+                            });
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    });
+                    }).start();
                 }
             }
         });
@@ -75,8 +84,12 @@ public class ASAClient implements ClientModInitializer {
         if (!ASAConfig.enabled || client.player == null || client.world == null) return;
 
         // 调试信息：在 Action Bar 显示当前状态
-        if (currentState != ASAState.IDLE) {
-            client.player.sendMessage(Text.literal("§b[ASA 状态] §f" + currentState.name()), true);
+        if (ASAConfig.showDebug) {
+            if (currentState != ASAState.IDLE && tickDelay == 0) {
+                client.player.sendMessage(Text.literal("§b[ASA 状态] §f" + currentState.name()), true);
+            } else if (tickDelay > 0 && currentState == ASAState.IDLE) {
+                client.player.sendMessage(Text.literal("§c[ASA 冷却中] §f" + (tickDelay / 20 + 1) + "s"), true);
+            }
         }
 
         if (tickDelay > 0) {
@@ -91,6 +104,17 @@ public class ASAClient implements ClientModInitializer {
             }
 
             case CHECKING_BLOCK -> {
+                // 新增坐标限制：X: 12.5 +/- 5, Z: 10.5 +/- 5, Y: 必须是 -59
+                double playerX = client.player.getX();
+                double playerY = client.player.getY();
+                double playerZ = client.player.getZ();
+
+                boolean inPosition = Math.abs(playerX - 12.5) <= 5.0 && 
+                                   Math.abs(playerZ - 10.5) <= 5.0 && 
+                                   (int)Math.floor(playerY) == -59;
+
+                if (!inPosition) return;
+
                 // Step 2: 检测脚底方块 3x3 范围内是否有 5 个以上目标方块
                 int matchCount = 0;
                 var basePos = client.player.getBlockPos().down();

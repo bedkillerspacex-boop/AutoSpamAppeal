@@ -27,8 +27,17 @@ public class ASAScreen extends Screen {
             }
         ).dimensions(centerX - 100, centerY - 50, 200, 20).build());
 
-        // 理由输入框
-        this.reasonField = new TextFieldWidget(this.textRenderer, centerX - 100, centerY - 10, 200, 20, Text.literal("申诉理由"));
+        // 调试信息开关按钮
+        this.addDrawableChild(ButtonWidget.builder(
+            Text.literal("调试信息: " + (ASAConfig.showDebug ? "§a显示" : "§c隐藏")),
+            button -> {
+                ASAConfig.showDebug = !ASAConfig.showDebug;
+                button.setMessage(Text.literal("调试信息: " + (ASAConfig.showDebug ? "§a显示" : "§c隐藏")));
+            }
+        ).dimensions(centerX - 100, centerY - 25, 200, 20).build());
+
+        // 理由输入框 (向下移动一点以避开新按钮)
+        this.reasonField = new TextFieldWidget(this.textRenderer, centerX - 100, centerY + 10, 200, 20, Text.literal("申诉理由"));
         this.reasonField.setMaxLength(128);
         this.reasonField.setText(ASAConfig.appealReason);
         this.addDrawableChild(this.reasonField);
@@ -40,13 +49,13 @@ public class ASAScreen extends Screen {
                 ASAConfig.appealReason = this.reasonField.getText();
                 this.close();
             }
-        ).dimensions(centerX - 100, centerY + 20, 200, 20).build());
+        ).dimensions(centerX - 100, centerY + 40, 200, 20).build());
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, "申诉理由:", this.width / 2 - 100, this.height / 2 - 25, 0xFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, "申诉理由:", this.width / 2 - 100, this.height / 2 + 0, 0xFFFFFF);
     }
 }
