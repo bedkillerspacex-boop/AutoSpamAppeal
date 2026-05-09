@@ -6,6 +6,7 @@
       "init": "Lnet/minecraft/class_419;method_25426()V"
     },
     "com/example/asa/mixin/InGameHudMixin": {
+      "setSubtitle": "Lnet/minecraft/class_329;method_34002(Lnet/minecraft/class_2561;)V",
       "setTitle": "Lnet/minecraft/class_329;method_34004(Lnet/minecraft/class_2561;)V"
     },
     "com/example/asa/mixin/KeyboardMixin": {
@@ -25,6 +26,7 @@
         "init": "Lnet/minecraft/class_419;method_25426()V"
       },
       "com/example/asa/mixin/InGameHudMixin": {
+        "setSubtitle": "Lnet/minecraft/class_329;method_34002(Lnet/minecraft/class_2561;)V",
         "setTitle": "Lnet/minecraft/class_329;method_34004(Lnet/minecraft/class_2561;)V"
       },
       "com/example/asa/mixin/KeyboardMixin": {

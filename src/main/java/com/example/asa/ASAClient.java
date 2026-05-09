@@ -91,16 +91,26 @@ public class ASAClient implements ClientModInitializer {
             }
 
             case CHECKING_BLOCK -> {
-                // Step 2: 检测脚底方块 (匹配图 1 中的多样化木板和闪长岩)
-                var blockState = client.world.getBlockState(client.player.getBlockPos().down());
-                boolean matches = blockState.isIn(BlockTags.PLANKS) || 
-                                 blockState.isOf(Blocks.DIORITE) || 
-                                 blockState.isOf(Blocks.POLISHED_DIORITE) ||
-                                 blockState.isOf(Blocks.ANDESITE) ||
-                                 blockState.isOf(Blocks.GRANITE);
+                // Step 2: 检测脚底方块 3x3 范围内是否有 5 个以上目标方块
+                int matchCount = 0;
+                var basePos = client.player.getBlockPos().down();
+                
+                for (int x = -1; x <= 1; x++) {
+                    for (int z = -1; z <= 1; z++) {
+                        var pos = basePos.add(x, 0, z);
+                        var state = client.world.getBlockState(pos);
+                        if (state.isIn(BlockTags.PLANKS) || 
+                            state.isOf(Blocks.DIORITE) || 
+                            state.isOf(Blocks.POLISHED_DIORITE) ||
+                            state.isOf(Blocks.ANDESITE) ||
+                            state.isOf(Blocks.GRANITE)) {
+                            matchCount++;
+                        }
+                    }
+                }
 
-                if (matches) {
-                    client.player.sendMessage(Text.literal("§7[ASA] §a检测到申诉环境，开始申诉..."), false);
+                if (matchCount >= 5) {
+                    client.player.sendMessage(Text.literal("§7[ASA] §a检测到周围有 " + matchCount + " 个目标方块，开始申诉..."), false);
                     currentState = ASAState.TELEPORTING;
                     tickDelay = 10;
                 }

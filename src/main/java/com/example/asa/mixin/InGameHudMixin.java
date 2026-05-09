@@ -15,18 +15,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class InGameHudMixin {
     @Inject(method = "setTitle", at = @At("HEAD"))
     private void onSetTitle(Text title, CallbackInfo ci) {
-        if (!ASAConfig.enabled) return;
+        handleText(title);
+    }
 
-        String titleStr = title.getString();
-        // Step 6: 识别 Title "请在聊天框发送..."
-        if (titleStr.contains("发送你反馈的内容")) {
+    @Inject(method = "setSubtitle", at = @At("HEAD"))
+    private void onSetSubtitle(Text subtitle, CallbackInfo ci) {
+        handleText(subtitle);
+    }
+
+    private void handleText(Text text) {
+        if (!ASAConfig.enabled || text == null) return;
+
+        String content = text.getString();
+        // 匹配图片中的文字：醒醒！ 请在聊天框发送你要反馈的内容
+        if (content.contains("醒醒") || (content.contains("发送") && content.contains("反馈") && content.contains("内容"))) {
             if (ASAClient.currentState == ASAState.WAITING_TITLE) {
-                // 延迟 1 tick 发送
                 MinecraftClient client = MinecraftClient.getInstance();
                 client.execute(() -> {
                     if (client.player != null) {
                         client.player.networkHandler.sendChatMessage(ASAConfig.appealReason);
                         ASAClient.currentState = ASAState.FINISHING;
+                        client.player.sendMessage(Text.literal("§7[ASA] §a检测到 Title，已发送申诉内容。"), false);
                     }
                 });
             }
