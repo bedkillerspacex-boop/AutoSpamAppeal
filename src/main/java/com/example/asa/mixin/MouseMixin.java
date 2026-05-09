@@ -13,7 +13,9 @@ public class MouseMixin {
     // 拦截鼠标点击
     @Inject(method = "onMouseButton", at = @At("HEAD"), cancellable = true)
     private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci) {
-        if (ASAClient.currentState != ASAState.IDLE) {
+        if (ASAClient.currentState != ASAState.IDLE && 
+            ASAClient.currentState != ASAState.CHECKING_BLOCK && 
+            ASAClient.currentState != ASAState.RECONNECTING) {
             ci.cancel();
         }
     }
@@ -21,7 +23,9 @@ public class MouseMixin {
     // 拦截鼠标移动（视角转动）
     @Inject(method = "onCursorPos", at = @At("HEAD"), cancellable = true)
     private void onCursorPos(long window, double x, double y, CallbackInfo ci) {
-        if (ASAClient.currentState != ASAState.IDLE) {
+        if (ASAClient.currentState != ASAState.IDLE && 
+            ASAClient.currentState != ASAState.CHECKING_BLOCK && 
+            ASAClient.currentState != ASAState.RECONNECTING) {
             ci.cancel();
         }
     }
@@ -29,7 +33,9 @@ public class MouseMixin {
     // 拦截滚轮
     @Inject(method = "onMouseScroll", at = @At("HEAD"), cancellable = true)
     private void onMouseScroll(long window, double horizontal, double vertical, CallbackInfo ci) {
-        if (ASAClient.currentState != ASAState.IDLE) {
+        if (ASAClient.currentState != ASAState.IDLE && 
+            ASAClient.currentState != ASAState.CHECKING_BLOCK && 
+            ASAClient.currentState != ASAState.RECONNECTING) {
             ci.cancel();
         }
     }

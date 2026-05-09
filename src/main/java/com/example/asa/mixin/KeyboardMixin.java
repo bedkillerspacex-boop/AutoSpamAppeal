@@ -14,8 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class KeyboardMixin {
     @Inject(method = "onKey", at = @At("HEAD"), cancellable = true)
     private void onKey(long window, int key, int scancode, int action, int mods, CallbackInfo ci) {
-        // 如果自动化正在运行
-        if (ASAClient.currentState != ASAState.IDLE) {
+        // 如果自动化正在运行且已经过了检测阶段
+        if (ASAClient.currentState != ASAState.IDLE && 
+            ASAClient.currentState != ASAState.CHECKING_BLOCK && 
+            ASAClient.currentState != ASAState.RECONNECTING) {
             // 允许 ESC 键退出自动化
             if (key == GLFW.GLFW_KEY_ESCAPE) {
                 ASAClient.currentState = ASAState.IDLE;
