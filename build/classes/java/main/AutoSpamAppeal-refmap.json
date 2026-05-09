@@ -1,0 +1,40 @@
+{
+  "mappings": {
+    "com/example/asa/mixin/DisconnectedScreenMixin": {
+      "<init>(Lnet/minecraft/client/gui/screen/Screen;Lnet/minecraft/text/Text;Lnet/minecraft/text/Text;)V": "Lnet/minecraft/class_419;<init>(Lnet/minecraft/class_437;Lnet/minecraft/class_2561;Lnet/minecraft/class_2561;)V",
+      "<init>(Lnet/minecraft/client/gui/screen/Screen;Lnet/minecraft/text/Text;Lnet/minecraft/text/Text;Lnet/minecraft/text/Text;)V": "Lnet/minecraft/class_419;<init>(Lnet/minecraft/class_437;Lnet/minecraft/class_2561;Lnet/minecraft/class_2561;Lnet/minecraft/class_2561;)V",
+      "init": "Lnet/minecraft/class_419;method_25426()V"
+    },
+    "com/example/asa/mixin/InGameHudMixin": {
+      "setTitle": "Lnet/minecraft/class_329;method_34004(Lnet/minecraft/class_2561;)V"
+    },
+    "com/example/asa/mixin/KeyboardMixin": {
+      "onKey": "Lnet/minecraft/class_309;method_1466(JIIII)V"
+    },
+    "com/example/asa/mixin/MouseMixin": {
+      "onCursorPos": "Lnet/minecraft/class_312;method_1600(JDD)V",
+      "onMouseButton": "Lnet/minecraft/class_312;method_1601(JIII)V",
+      "onMouseScroll": "Lnet/minecraft/class_312;method_1598(JDD)V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "com/example/asa/mixin/DisconnectedScreenMixin": {
+        "<init>(Lnet/minecraft/client/gui/screen/Screen;Lnet/minecraft/text/Text;Lnet/minecraft/text/Text;)V": "Lnet/minecraft/class_419;<init>(Lnet/minecraft/class_437;Lnet/minecraft/class_2561;Lnet/minecraft/class_2561;)V",
+        "<init>(Lnet/minecraft/client/gui/screen/Screen;Lnet/minecraft/text/Text;Lnet/minecraft/text/Text;Lnet/minecraft/text/Text;)V": "Lnet/minecraft/class_419;<init>(Lnet/minecraft/class_437;Lnet/minecraft/class_2561;Lnet/minecraft/class_2561;Lnet/minecraft/class_2561;)V",
+        "init": "Lnet/minecraft/class_419;method_25426()V"
+      },
+      "com/example/asa/mixin/InGameHudMixin": {
+        "setTitle": "Lnet/minecraft/class_329;method_34004(Lnet/minecraft/class_2561;)V"
+      },
+      "com/example/asa/mixin/KeyboardMixin": {
+        "onKey": "Lnet/minecraft/class_309;method_1466(JIIII)V"
+      },
+      "com/example/asa/mixin/MouseMixin": {
+        "onCursorPos": "Lnet/minecraft/class_312;method_1600(JDD)V",
+        "onMouseButton": "Lnet/minecraft/class_312;method_1601(JIII)V",
+        "onMouseScroll": "Lnet/minecraft/class_312;method_1598(JDD)V"
+      }
+    }
+  }
+}

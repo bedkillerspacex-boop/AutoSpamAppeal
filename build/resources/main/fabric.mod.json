@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "autospamappeal",
+  "version": "1.0.0",
+  "name": "Auto Spam Appeal",
+  "description": "Automated appeal process for specific servers.",
+  "authors": ["Gemini CLI"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/autospamappeal/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.example.asa.ASAClient"
+    ]
+  },
+  "mixins": [
+    "autospamappeal.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
