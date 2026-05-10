@@ -66,12 +66,17 @@ public class ASAClient implements ClientModInitializer {
 
             if (isFinished) {
                 if (currentState == ASAState.FINISHING) {
-                    MinecraftClient.getInstance().player.sendMessage(Text.literal("§7[ASA] §e检测到服务器反馈，2秒后自动退出..."), false);
-                    // 等待 2 秒后退出
-                    tickDelay = 40; 
+                    boolean success = content.contains("反馈成功") || content.contains("Success");
+                    String result = success ? "§a成功" : "§c失败";
+                    
+                    MinecraftClient.getInstance().player.sendMessage(Text.literal("§7[ASA] §f申诉结果: " + result), false);
+                    MinecraftClient.getInstance().player.sendMessage(Text.literal("§7[ASA] §f发送内容: §e" + ASAConfig.appealReason), false);
+                    
+                    // 等待 0.1 秒后退出
+                    tickDelay = 2; 
                     new Thread(() -> {
                         try {
-                            Thread.sleep(2000); // 2秒
+                            Thread.sleep(100); // 0.1秒
                             MinecraftClient.getInstance().execute(() -> {
                                 if (MinecraftClient.getInstance().world != null && currentState == ASAState.FINISHING) {
                                     MinecraftClient.getInstance().world.disconnect();
@@ -105,6 +110,10 @@ public class ASAClient implements ClientModInitializer {
         }
 
         switch (currentState) {
+            case RECONNECTING -> {
+                currentState = ASAState.IDLE;
+            }
+
             case IDLE -> {
                 // 启用后立即进入检测阶段
                 currentState = ASAState.CHECKING_BLOCK;
@@ -143,7 +152,7 @@ public class ASAClient implements ClientModInitializer {
                 if (matchCount >= 5) {
                     client.player.sendMessage(Text.literal("§7[ASA] §a检测到周围有 " + matchCount + " 个目标方块，开始申诉..."), false);
                     currentState = ASAState.TELEPORTING;
-                    tickDelay = 10;
+                    tickDelay = 1;
                 }
             }
 
@@ -152,7 +161,7 @@ public class ASAClient implements ClientModInitializer {
                 client.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(14.5, -59.0, 14.5, true, true));
                 client.player.setPosition(14.5, -59.0, 14.5);
                 currentState = ASAState.ATTACKING;
-                tickDelay = 10;
+                tickDelay = 1;
             }
 
             case ATTACKING -> {
@@ -174,7 +183,7 @@ public class ASAClient implements ClientModInitializer {
                 if (target != null) {
                     client.interactionManager.attackEntity(client.player, target);
                     currentState = ASAState.GUI_MAIN;
-                    tickDelay = 30; // 稍长的等待，确保 GUI 开启
+                    tickDelay = 2; // 稍长的等待，确保 GUI 开启
                 }
             }
 
@@ -187,7 +196,7 @@ public class ASAClient implements ClientModInitializer {
                             if (stack.isOf(net.minecraft.item.Items.REDSTONE_BLOCK)) {
                                 clickSlot(client, screen, i);
                                 currentState = ASAState.GUI_SUB;
-                                tickDelay = 20;
+                                tickDelay = 2;
                                 return;
                             }
                         }
@@ -205,7 +214,7 @@ public class ASAClient implements ClientModInitializer {
                                 if (stack.getName().getString().contains("自述申诉")) {
                                     clickSlot(client, screen, i);
                                     currentState = ASAState.WAITING_TITLE;
-                                    tickDelay = 5;
+                                    tickDelay = 1;
                                     return;
                                 }
                             }

@@ -21,8 +21,8 @@ public class KeyboardMixin {
             // 允许 ESC 键退出自动化
             if (key == GLFW.GLFW_KEY_ESCAPE) {
                 ASAClient.currentState = ASAState.IDLE;
-                ASAClient.tickDelay = 100; // 5秒冷却 (20 ticks * 5)
-                MinecraftClient.getInstance().player.sendMessage(net.minecraft.text.Text.literal("§7[ASA] §c用户干预，已手动停止任务（5秒冷却）。"), false);
+                ASAClient.tickDelay = 20; // 1秒冷却 (20 ticks)
+                MinecraftClient.getInstance().player.sendMessage(net.minecraft.text.Text.literal("§7[ASA] §c用户干预，已手动停止任务（1秒冷却）。"), false);
                 return;
             }
             
