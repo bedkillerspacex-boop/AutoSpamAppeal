@@ -42,7 +42,7 @@ public abstract class DisconnectedScreenMixin extends Screen {
             // 延迟重连
             new Thread(() -> {
                 try {
-                    Thread.sleep(100); // 0.1秒后重连
+                    Thread.sleep(1000); // 1秒后重连
                     MinecraftClient.getInstance().execute(() -> {
                         ASAUtils.reconnect(MinecraftClient.getInstance());
                     });

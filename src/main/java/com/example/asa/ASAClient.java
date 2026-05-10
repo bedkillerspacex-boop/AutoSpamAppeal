@@ -18,6 +18,9 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.minecraft.client.network.ServerInfo;
+
 public class ASAClient implements ClientModInitializer {
     public static ASAState currentState = ASAState.IDLE;
     public static int tickDelay = 0;
@@ -29,6 +32,11 @@ public class ASAClient implements ClientModInitializer {
     public void onInitializeClient() {
         ASAConfig.load();
         
+        // 记录最后连接的服务器
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            ASAUtils.lastServerInfo = client.getCurrentServerEntry();
+        });
+
         configKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.autospamappeal.config",
             InputUtil.Type.KEYSYM,
@@ -72,11 +80,11 @@ public class ASAClient implements ClientModInitializer {
                     MinecraftClient.getInstance().player.sendMessage(Text.literal("§7[ASA] §f申诉结果: " + result), false);
                     MinecraftClient.getInstance().player.sendMessage(Text.literal("§7[ASA] §f发送内容: §e" + ASAConfig.appealReason), false);
                     
-                    // 等待 0.1 秒后退出
-                    tickDelay = 2; 
+                    // 等待 1 秒后退出 (稍微增加稳定性)
+                    tickDelay = 20; 
                     new Thread(() -> {
                         try {
-                            Thread.sleep(100); // 0.1秒
+                            Thread.sleep(1000); // 1秒
                             MinecraftClient.getInstance().execute(() -> {
                                 if (MinecraftClient.getInstance().world != null && currentState == ASAState.FINISHING) {
                                     MinecraftClient.getInstance().world.disconnect();
