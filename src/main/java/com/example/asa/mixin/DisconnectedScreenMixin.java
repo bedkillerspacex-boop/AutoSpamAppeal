@@ -36,9 +36,12 @@ public abstract class DisconnectedScreenMixin extends Screen {
         if (!ASAConfig.enabled || this.asa$capturedReason == null) return;
 
         String reasonStr = this.asa$capturedReason.getString();
-        // Step 1: 检测 Banned 消息
-        if (reasonStr.contains("封禁") || reasonStr.contains("Banned") || reasonStr.contains("检测到") || reasonStr.contains("Spam")) {
-            ASAConfig.lastBanMessage = reasonStr;
+        // Step 1: 检测 Banned 消息，或者由于申诉完成导致的断开
+        boolean isBan = reasonStr.contains("封禁") || reasonStr.contains("Banned") || reasonStr.contains("检测到") || reasonStr.contains("Spam");
+        boolean isManualDisconnect = reasonStr.contains("Disconnected") || reasonStr.contains("连接已断开");
+
+        if (isBan || isManualDisconnect) {
+            ASAConfig.lastBanMessage = isBan ? reasonStr : ASAConfig.lastBanMessage;
             // 延迟重连
             new Thread(() -> {
                 try {

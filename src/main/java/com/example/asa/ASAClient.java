@@ -34,7 +34,15 @@ public class ASAClient implements ClientModInitializer {
         
         // 记录最后连接的服务器
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            ASAUtils.lastServerInfo = client.getCurrentServerEntry();
+            ServerInfo info = client.getCurrentServerEntry();
+            if (info == null) {
+                // 如果是直接连接，手动创建一个 ServerInfo
+                String address = handler.getConnection().getAddress().toString();
+                if (address.startsWith("/")) address = address.substring(1);
+                info = new ServerInfo("Server", address, ServerInfo.ServerType.OTHER);
+            }
+            ASAUtils.lastServerInfo = info;
+            System.out.println("[ASA] 已记录服务器信息: " + info.address);
         });
 
         configKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
