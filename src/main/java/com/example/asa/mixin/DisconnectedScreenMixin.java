@@ -12,10 +12,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @Mixin(DisconnectedScreen.class)
 public abstract class DisconnectedScreenMixin extends Screen {
     @Unique
     private Text asa$capturedReason;
+    @Unique
+    private final AtomicBoolean asa$rejoinScheduled = new AtomicBoolean(false);
 
     protected DisconnectedScreenMixin(Text title) {
         super(title);
@@ -36,23 +40,12 @@ public abstract class DisconnectedScreenMixin extends Screen {
         if (!ASAConfig.enabled || this.asa$capturedReason == null) return;
 
         String reasonStr = this.asa$capturedReason.getString();
-        // Step 1: 检测 Banned 消息，或者由于申诉完成导致的断开
         boolean isBan = reasonStr.contains("封禁") || reasonStr.contains("Banned") || reasonStr.contains("检测到") || reasonStr.contains("Spam");
-        boolean isManualDisconnect = reasonStr.contains("Disconnected") || reasonStr.contains("连接已断开");
+        boolean shouldReconnect = ASAUtils.shouldAutoReconnect(reasonStr);
 
-        if (isBan || isManualDisconnect) {
+        if (shouldReconnect && asa$rejoinScheduled.compareAndSet(false, true)) {
             ASAConfig.lastBanMessage = isBan ? reasonStr : ASAConfig.lastBanMessage;
-            // 延迟重连
-            new Thread(() -> {
-                try {
-                    Thread.sleep(1000); // 1秒后重连
-                    MinecraftClient.getInstance().execute(() -> {
-                        ASAUtils.reconnect(MinecraftClient.getInstance());
-                    });
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
+            ASAUtils.scheduleReconnect(MinecraftClient.getInstance(), 1200);
         }
     }
 }
